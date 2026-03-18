@@ -1,1 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Liner Generator — D&R Group</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f2f5; min-height:100vh;
+      display:flex; align-items:flex-start; justify-content:center; padding:28px 16px;
+    }
+    .card {
+      background:#fff; border-radius:12px;
+      box-shadow:0 4px 24px rgba(0,0,0,.10);
+      padding:36px 40px; width:100%; max-width:560px;
+    }
+    .logo { display:flex; align-items:center; gap:10px; margin-bottom:26px; }
+    .logo-icon {
+      width:36px; height:36px; background:#1a3fa8; border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .logo-icon svg { width:20px; height:20px; }
+    .logo-text { font-size:17px; font-weight:700; color:#1a3fa8; }
+    .logo-sub  { font-size:11px; color:#888; margin-top:1px; }
+    h1         { font-size:21px; font-weight:700; color:#1a1a2e; margin-bottom:4px; }
+    .subtitle  { font-size:13px; color:#666; margin-bottom:28px; }
+    .sec-label {
+      font-size:10.5px; font-weight:700; text-transform:uppercase;
+      letter-spacing:.8px; color:#999; margin:22px 0 12px;
+    }
+    .divider { border:none; border-top:1px solid #eee; margin:20px 0; }
+    .field { margin-bottom:16px; }
+    label  { display:block; font-size:13px; font-weight:600; color:#333; margin-bottom:5px; }
+    .hint  { font-size:11px; color:#999; margin-top:3px; }
+    input[type="number"], input[type="text"], select {
+      width:100%; padding:9px 12px; border:1.5px solid #dde1ea; border-radius:7px;
+      font-size:14px; color:#1a1a2e; background:#fafbfc; transition:border-color .15s;
+    }
+    input:focus, select:focus { outline:none; border-color:#1a3fa8; background:#fff; }
+    input[readonly] { background:#f3f4f6; color:#666; cursor:default; }
+    .pill-group { display:flex; gap:8px; flex-wrap:wrap; }
+    .pill-option { position:relative; }
+    .pill-option input[type="radio"] { position:absolute; opacity:0; width:0; }
+    .pill-option label {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:10px 16px; border:2px solid #dde1ea; border-radius:9px;
+      cursor:pointer; font-size:13px; font-weight:600; color:#555;
+      transition:all .15s; text-align:center; gap:3px; white-space:nowrap;
+    }
+    .pill-option label .sub { font-size:10.5px; font-weight:400; color:#999; }
+    .pill-option input:checked + label { border-color:#1a3fa8; background:#eef2ff; color:#1a3fa8; }
+    .pill-option input:checked + label .sub { color:#4a6fd4; }
+    .fabric-group { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+    .fabric-option { position:relative; }
+    .fabric-option input[type="radio"] { position:absolute; opacity:0; width:0; }
+    .fabric-option label {
+      display:flex; flex-direction:column; align-items:center;
+      padding:10px 6px; border:2px solid #dde1ea; border-radius:9px;
+      cursor:pointer; font-size:12px; font-weight:700; color:#555;
+      transition:all .15s; text-align:center; gap:2px;
+    }
+    .fabric-option label .fd { font-size:10px; font-weight:400; color:#999; }
+    .fabric-option input:checked + label { border-color:#1a3fa8; background:#eef2ff; color:#1a3fa8; }
+    .fabric-option input:checked + label .fd { color:#4a6fd4; }
+    .row2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+    .specs-row {
+      display:flex; gap:16px; flex-wrap:wrap;
+      font-size:11.5px; color:#888; margin-top:8px;
+    }
+    .specs-row strong { color:#555; }
+    .adv-toggle {
+      background:none; border:none; color:#1a3fa8; font-size:12px;
+      cursor:pointer; padding:0; display:flex; align-items:center; gap:4px;
+      margin-top:6px;
+    }
+    .adv-toggle svg { transition:transform .2s; }
+    .adv-toggle.open svg { transform:rotate(90deg); }
+    .adv-section {
+      display:none; margin-top:12px; padding:14px;
+      background:#f8f9fd; border-radius:8px; border:1px solid #e2e6f3;
+    }
+    .adv-section.open { display:block; }
+    .btn-group { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:26px; }
+    .btn {
+      padding:12px; border:none; border-radius:8px;
+      font-size:14px; font-weight:700; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; gap:7px;
+      transition:background .15s;
+    }
+    .btn-pdf { background:#1a3fa8; color:#fff; }
+    .btn-pdf:hover { background:#153388; }
+    .btn-dxf { background:#0d6e4f; color:#fff; }
+    .btn-dxf:hover { background:#0a5a40; }
+    .btn:disabled { background:#aab4cc !important; cursor:not-allowed; }
+    .spinner {
+      width:16px; height:16px; border:2.5px solid rgba(255,255,255,.4);
+      border-top-color:#fff; border-radius:50%;
+      animation:spin .7s linear infinite; display:none;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .alert { padding:10px 13px; border-radius:7px; font-size:13px; margin-top:14px; display:none; }
+    .alert-error   { background:#fff0f0; color:#c0392b; border:1px solid #f5c6c6; }
+    .alert-success { background:#f0fff4; color:#1a7a3f; border:1px solid #b2dfcc; }
+    .sq-note { font-size:11px; color:#888; margin-top:-8px; margin-bottom:10px; display:none; }
+    .disabled-section { opacity:0.4; pointer-events:none; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+        <circle cx="12" cy="12" r="9"/>
+        <line x1="12" y1="3" x2="12" y2="21"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">Liner Generator</div>
+      <div class="logo-sub">D&amp;R Group — Circular &amp; Rectangular Tank Liners</div>
+    </div>
+  </div>
 
+  <h1>Panel Layout</h1>
+  <p class="subtitle">Generate fabrication drawings with panel dimensions, fabric schedule and weld plan.</p>
+
+  <form id="linerForm">
+
+    <!-- SHAPE -->
+    <div class="sec-label">Shape</div>
+    <div class="pill-group">
+      <div class="pill-option">
+        <input type="radio" name="shape" id="sCircle" value="circle" checked/>
+        <label for="sCircle">Circle</label>
+      </div>
+      <div class="pill-option">
+        <input type="radio" name="shape" id="sRect" value="rectangle"/>
+        <label for="sRect">Rectangle <span class="sub">incl. square</span></label>
+      </div>
+    </div>
+
+    <div id="circleFields" style="margin-top:14px;">
+      <div class="field">
+        <label for="diameter">Diameter (m)</label>
+        <input type="number" id="diameter" name="diameter" step="0.1" min="1" max="500" placeholder="e.g. 78.4"/>
+      </div>
+    </div>
+
+    <div id="rectFields" style="display:none; margin-top:14px;">
+      <div class="row2">
+        <div class="field">
+          <label for="width">Width (m)</label>
+          <input type="number" id="width" name="width" step="0.1" min="0.1" max="500" placeholder="e.g. 30"/>
+        </div>
+        <div class="field">
+          <label for="length">Length (m)</label>
+          <input type="number" id="length" name="length" step="0.1" min="0.1" max="500" placeholder="e.g. 50"/>
+        </div>
+      </div>
+      <div class="sq-note" id="sqNote">Square detected — width = length.</div>
+      <div class="field">
+        <label>Strip direction</label>
+        <div class="pill-group">
+          <div class="pill-option">
+            <input type="radio" name="strip_direction" id="sdW" value="along_width" checked/>
+            <label for="sdW">Along width <span class="sub">seams parallel to width</span></label>
+          </div>
+          <div class="pill-option">
+            <input type="radio" name="strip_direction" id="sdL" value="along_length"/>
+            <label for="sdL">Along length <span class="sub">seams parallel to length</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENT / PROJECT -->
+    <hr class="divider"/>
+    <div class="row2">
+      <div class="field">
+        <label for="client">Client</label>
+        <input type="text" id="client" name="client" placeholder="e.g. Concept Tanks"/>
+      </div>
+      <div class="field">
+        <label for="project">Project</label>
+        <input type="text" id="project" name="project" placeholder="e.g. Bowen J-123"/>
+      </div>
+    </div>
+
+    <!-- FABRIC -->
+    <hr class="divider"/>
+    <div class="sec-label">Fabric</div>
+    <div class="fabric-group">
+      <div class="fabric-option">
+        <input type="radio" name="fabric_ref" id="f6020" value="EL6020"/>
+        <label for="f6020">EL6020<span class="fd">0.5mm · 500gsm</span></label>
+      </div>
+      <div class="fabric-option">
+        <input type="radio" name="fabric_ref" id="f6030" value="EL6030" checked/>
+        <label for="f6030">EL6030<span class="fd">0.75mm · 750gsm</span></label>
+      </div>
+      <div class="fabric-option">
+        <input type="radio" name="fabric_ref" id="f6040" value="EL6040"/>
+        <label for="f6040">EL6040<span class="fd">1.0mm · 1000gsm</span></label>
+      </div>
+      <div class="fabric-option">
+        <input type="radio" name="fabric_ref" id="fCustom" value="custom"/>
+        <label for="fCustom">Custom<span class="fd">override</span></label>
+      </div>
+    </div>
+
+    <div id="presetDisplay" class="specs-row" style="margin-top:10px;">
+      <span><strong>Roll:</strong> <span id="dispRoll">3.76 m</span></span>
+      <span><strong>Weld:</strong> <span id="dispWeld">120 mm</span></span>
+      <span><strong>Net:</strong> <span id="dispNet">3.64 m</span></span>
+      <span><strong>Max roll:</strong> <span id="dispMaxRoll">381 m</span></span>
+    </div>
+
+    <div id="customFields" style="display:none; margin-top:12px;">
+      <div class="row3">
+        <div class="field">
+          <label>Fabric name</label>
+          <input type="text" name="fabric_name" placeholder="e.g. Custom-X"/>
+        </div>
+        <div class="field">
+          <label>Roll width (m)</label>
+          <input type="number" name="roll_width" step="0.01" min="0.5" max="10" placeholder="3.76"/>
+        </div>
+        <div class="field">
+          <label>Weld overlap (m)</label>
+          <input type="number" name="weld_overlap" step="0.001" min="0.01" max="0.5" placeholder="0.12"/>
+        </div>
+      </div>
+      <div class="row3">
+        <div class="field">
+          <label>GSM</label>
+          <input type="number" name="gsm" step="1" min="100" max="5000" placeholder="750"/>
+        </div>
+        <div class="field">
+          <label>Thickness (mm)</label>
+          <input type="number" name="thickness_mm" step="0.1" min="0.1" max="10" placeholder="0.75"/>
+        </div>
+        <div class="field">
+          <label>Max roll (m)</label>
+          <input type="number" name="max_roll_m" step="1" min="10" max="2000" placeholder="381"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL MODE -->
+    <hr class="divider"/>
+    <div class="sec-label">Panel Mode</div>
+    <div class="pill-group">
+      <div class="pill-option">
+        <input type="radio" name="mode" id="mInd" value="individual" checked/>
+        <label for="mInd">Individual <span class="sub">all site-welded</span></label>
+      </div>
+      <div class="pill-option" id="prefabOption">
+        <input type="radio" name="mode" id="mPre" value="prefab"/>
+        <label for="mPre">Prefab assembly <span class="sub">shop-welded units</span></label>
+      </div>
+    </div>
+    <div id="spuField" style="display:none; margin-top:12px;">
+      <div class="field" style="max-width:180px;">
+        <label for="strips_per_unit">Strips per unit</label>
+        <input type="number" id="strips_per_unit" name="strips_per_unit" min="2" max="10" value="3"/>
+        <div class="hint">Strips joined together in the shop per assembly</div>
+      </div>
+    </div>
+
+    <!-- LAYOUT RULE (circle only) -->
+    <div id="layoutSection">
+      <hr class="divider"/>
+      <div class="sec-label">Layout Rule</div>
+      <div class="pill-group">
+        <div class="pill-option">
+          <input type="radio" name="layout" id="lAuto" value="auto" checked/>
+          <label for="lAuto">Auto-optimise <span class="sub">min fabric</span></label>
+        </div>
+        <div class="pill-option">
+          <input type="radio" name="layout" id="lCen" value="centred"/>
+          <label for="lCen">Centred <span class="sub">strip on axis</span></label>
+        </div>
+        <div class="pill-option">
+          <input type="radio" name="layout" id="lStr" value="straddled"/>
+          <label for="lStr">Straddled <span class="sub">pair on axis</span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADVANCED -->
+    <hr class="divider"/>
+    <button type="button" class="adv-toggle" id="advBtn">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path d="M4 2l4 4-4 4" stroke="#1a3fa8" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Advanced options
+    </button>
+    <div class="adv-section" id="advSection">
+      <div class="field">
+        <label>Perimeter allowance (mm)</label>
+        <input type="number" name="perimeter_allowance_mm" min="0" max="5000" value="0" step="10"/>
+        <div class="hint">Extra material outside nominal tank size on all sides for anchoring / trenching.</div>
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label>Edge coverage</label>
+        <div class="pill-group">
+          <div class="pill-option">
+            <input type="radio" name="full_coverage" id="ecFull" value="true" checked/>
+            <label for="ecFull">Full coverage <span class="sub">include partial edge strips</span></label>
+          </div>
+          <div class="pill-option">
+            <input type="radio" name="full_coverage" id="ecOnly" value="false"/>
+            <label for="ecOnly">Only full strips <span class="sub">no partial edges</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENERATE -->
+    <div class="btn-group">
+      <button type="button" class="btn btn-pdf" id="btnPdf">
+        <div class="spinner" id="spinPdf"></div>
+        <span id="txtPdf">&#8595; Generate PDF</span>
+      </button>
+      <button type="button" class="btn btn-dxf" id="btnDxf">
+        <div class="spinner" id="spinDxf"></div>
+        <span id="txtDxf">&#8595; Generate DXF</span>
+      </button>
+    </div>
+
+    <div class="alert alert-error"   id="alertError"></div>
+    <div class="alert alert-success" id="alertSuccess"></div>
+
+  </form>
+</div>
+
+<script>
+const PRESETS = {
+  EL6020: { roll:3.76, weld:0.12, gsm:500,  thick:0.5,  maxRoll:500 },
+  EL6030: { roll:3.76, weld:0.12, gsm:750,  thick:0.75, maxRoll:381 },
+  EL6040: { roll:3.76, weld:0.12, gsm:1000, thick:1.0,  maxRoll:304 },
+};
+
+function updateFabricDisplay(ref) {
+  const p = PRESETS[ref]; if (!p) return;
+  document.getElementById("dispRoll").textContent    = p.roll + " m";
+  document.getElementById("dispWeld").textContent    = (p.weld*1000).toFixed(0) + " mm";
+  document.getElementById("dispNet").textContent     = (p.roll - p.weld).toFixed(4) + " m";
+  document.getElementById("dispMaxRoll").textContent = p.maxRoll + " m";
+}
+updateFabricDisplay("EL6030");
+
+document.querySelectorAll('input[name="fabric_ref"]').forEach(r => {
+  r.addEventListener("change", () => {
+    const isCustom = r.value === "custom";
+    document.getElementById("customFields").style.display  = isCustom ? "block" : "none";
+    document.getElementById("presetDisplay").style.display = isCustom ? "none"  : "flex";
+    if (!isCustom) updateFabricDisplay(r.value);
+  });
+});
+
+document.querySelectorAll('input[name="shape"]').forEach(r => {
+  r.addEventListener("change", () => {
+    const isCircle = r.value === "circle";
+    document.getElementById("circleFields").style.display  = isCircle ? "block" : "none";
+    document.getElementById("rectFields").style.display    = isCircle ? "none"  : "block";
+    document.getElementById("layoutSection").style.display = isCircle ? "block" : "none";
+    const prefabOpt = document.getElementById("prefabOption");
+    prefabOpt.classList.toggle("disabled-section", !isCircle);
+    if (!isCircle) { document.getElementById("mInd").checked = true; toggleSpu(); }
+  });
+});
+
+["width","length"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => {
+    const w = document.getElementById("width").value;
+    const l = document.getElementById("length").value;
+    document.getElementById("sqNote").style.display = (w && l && w===l) ? "block" : "none";
+  });
+});
+
+function toggleSpu() {
+  document.getElementById("spuField").style.display =
+    document.getElementById("mPre").checked ? "block" : "none";
+}
+document.querySelectorAll('input[name="mode"]').forEach(r =>
+  r.addEventListener("change", toggleSpu));
+
+document.getElementById("advBtn").addEventListener("click", () => {
+  document.getElementById("advBtn").classList.toggle("open");
+  document.getElementById("advSection").classList.toggle("open");
+});
+
+async function doSubmit(fmt) {
+  document.getElementById("alertError").style.display  = "none";
+  document.getElementById("alertSuccess").style.display = "none";
+
+  const spinEl = document.getElementById("spin" + (fmt==="pdf"?"Pdf":"Dxf"));
+  const txtEl  = document.getElementById("txt"  + (fmt==="pdf"?"Pdf":"Dxf"));
+  document.getElementById("btnPdf").disabled = true;
+  document.getElementById("btnDxf").disabled = true;
+  spinEl.style.display = "block";
+  txtEl.textContent    = "Generating...";
+
+  try {
+    const fd   = new FormData(document.getElementById("linerForm"));
+    fd.set("format", fmt);
+    const resp = await fetch("/generate", { method:"POST", body:fd });
+    if (!resp.ok) {
+      const d = await resp.json().catch(()=>({error:"Server error"}));
+      throw new Error(d.error || "Unknown error");
+    }
+    const blob = await resp.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    const shape = document.querySelector('input[name="shape"]:checked').value;
+    const size  = shape==="circle"
+      ? document.getElementById("diameter").value+"m"
+      : document.getElementById("width").value+"x"+document.getElementById("length").value+"m";
+    const fab  = document.querySelector('input[name="fabric_ref"]:checked').value;
+    const mode = document.querySelector('input[name="mode"]:checked').value;
+    a.href = url; a.download = `liner_${size}_${fab}_${mode}.${fmt}`; a.click();
+    URL.revokeObjectURL(url);
+    document.getElementById("alertSuccess").textContent   = fmt.toUpperCase()+" generated — check your downloads.";
+    document.getElementById("alertSuccess").style.display = "block";
+  } catch(err) {
+    document.getElementById("alertError").textContent   = "Error: "+err.message;
+    document.getElementById("alertError").style.display = "block";
+  } finally {
+    document.getElementById("btnPdf").disabled = false;
+    document.getElementById("btnDxf").disabled = false;
+    spinEl.style.display = "none";
+    txtEl.textContent = fmt==="pdf" ? "\u2193 Generate PDF" : "\u2193 Generate DXF";
+  }
+}
+
+document.getElementById("btnPdf").addEventListener("click", ()=>doSubmit("pdf"));
+document.getElementById("btnDxf").addEventListener("click", ()=>doSubmit("dxf"));
+</script>
+</body>
+</html>
